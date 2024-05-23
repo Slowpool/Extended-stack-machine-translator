@@ -11,8 +11,10 @@ namespace Extended_stack_machine_translator
     internal class Translator
     {
         internal readonly List<string> commandsSequence;
-        internal static Dictionary<string, int> AddressValue = new Dictionary<string, int>();
-        internal static string[] Commands = new string[] {
+        internal static Dictionary<string, int> AddressValue;
+        internal static Dictionary<int, int> RAM;
+        private int MemoryCellIndex { get; set; }
+        internal static readonly string[] Commands = new string[] {
             "DUP",
             "DROP",
             "SWAP",
@@ -46,13 +48,18 @@ namespace Extended_stack_machine_translator
             "DTR",
             "RTD"
         };
-        private readonly Stack<int> stack;
-        //internal List<string>
+        private readonly Stack<int> DataStack;
+        private readonly Stack<int> ReturnStack;
+        private int PC { get; set; }
 
         public Translator()
         {
             commandsSequence = new List<string>();
-            stack = new Stack<int>();
+            AddressValue = new Dictionary<string, int>();
+            RAM = new Dictionary<int, int>();
+            DataStack = new Stack<int>();
+            ReturnStack = new Stack<int>();
+            Reset();
         }
 
         internal void ExecuteFile(string filePath)
@@ -70,7 +77,7 @@ namespace Extended_stack_machine_translator
             commandsSequence.Print();
 
             // First traversal. Reading of labels and writing their addresses.
-            for (int i = 0; i != commandsSequence.Count; )
+            for (int i = 0; i != commandsSequence.Count;)
             {
                 if (ReplaceIfLabel(i))
                 {
@@ -88,27 +95,36 @@ namespace Extended_stack_machine_translator
             // Second traversal. Replace addreses with numbers.
             for (int i = 0; i < commandsSequence.Count; i++)
             {
-                ReplaceAdress(i);
+                if (TokenSelector.IsAddressToken(commandsSequence[i]))
+                {
+                    ReplaceAdress(i);
+                }
             }
 
             Debug.WriteLine("second traversal: ");
             commandsSequence.Print();
 
-            // Second traversal. Executing
-            //foreach (string line in lines)
-            //{
-            //    for(int pointer = 0; pointer < commandsSequence.Count; pointer++)
-            //    {
-            //        ExecuteToken(commandsSequence[pointer], ref pointer);
-            //    }
-            //    commandsSequence.Clear();
-            //}
+            // Third traversal. Executing
+            while ( PC < commandsSequence.Count)
+            {
+                Execute(commandsSequence[PC]);
+            }
+
             Reset();
         }
 
         private void ReplaceAdress(int i)
         {
-
+            string currentAddress = commandsSequence[i];
+            if (AddressValue.ContainsKey(currentAddress))
+            {
+                commandsSequence[i] = AddressValue[currentAddress].ToString();
+            }
+            else
+            {
+                AddressValue[currentAddress] = MemoryCellIndex++;
+                commandsSequence[i] = AddressValue[currentAddress].ToString();
+            }
         }
 
         private bool ReplaceIfLabel(int i)
@@ -127,12 +143,28 @@ namespace Extended_stack_machine_translator
             }
         }
 
-        private void ExecuteToken(string token, ref int pointer)
+        private void Execute(string token)
         {
             if (Commands.Contains(token))
             {
                 ExecuteCommand(token);
             }
+            else if (IsNumber(token))
+            {
+                DataStack.Push(int.Parse(token));
+            }
+        }
+
+        private bool IsNumber(string token)
+        {
+            foreach(char character in token)
+            {
+                if (!char.IsNumber(character))
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         private void ExecuteCommand(string comamnd)
@@ -140,149 +172,183 @@ namespace Extended_stack_machine_translator
             switch (comamnd)
             {
                 case "DUP":
-                    stack.Push(stack.Peek());
+                    DataStack.Push(DataStack.Peek());
                     break;
                 case "DROP":
-                    stack.Pop();
+                    DataStack.Pop();
                     break;
                 case "SWAP":
                     {
-                        int temp = stack.Pop();
-                        int temp2 = stack.Pop();
-                        stack.Push(temp);
-                        stack.Push(temp2);
+                        int temp = DataStack.Pop();
+                        int temp2 = DataStack.Pop();
+                        DataStack.Push(temp);
+                        DataStack.Push(temp2);
                         break;
                     }
                 case "OVER":
                     {
-                        int temp = stack.Pop();
-                        int temp2 = stack.Peek();
-                        stack.Push(temp);
-                        stack.Push(temp2);
+                        int temp = DataStack.Pop();
+                        int temp2 = DataStack.Peek();
+                        DataStack.Push(temp);
+                        DataStack.Push(temp2);
                         break;
                     }
                 case "ADD":
                     {
-                        int sum = stack.Pop() + stack.Pop();
-                        stack.Push(sum);
+                        int sum = DataStack.Pop() + DataStack.Pop();
+                        DataStack.Push(sum);
                         break;
                     }
                 case "SUB":
                     {
-                        int difference = -stack.Pop() + stack.Pop();
-                        stack.Push(difference);
+                        int difference = -DataStack.Pop() + DataStack.Pop();
+                        DataStack.Push(difference);
                         break;
                     }
                 case "MUL":
                     {
-                        int product = stack.Pop() * stack.Pop();
-                        stack.Push(product);
+                        int product = DataStack.Pop() * DataStack.Pop();
+                        DataStack.Push(product);
                         break;
                     }
                 case "DIV":
                     {
-                        int divisor = stack.Pop();
-                        int divisible = stack.Pop();
+                        int divisor = DataStack.Pop();
+                        int divisible = DataStack.Pop();
                         int remainder = divisible % divisor;
                         int quotient = divisible / divisor;
-                        stack.Push(remainder);
-                        stack.Push(quotient);
+                        DataStack.Push(remainder);
+                        DataStack.Push(quotient);
                         break;
                     }
                 case "NEG":
-                    stack.Push(-stack.Pop());
+                    DataStack.Push(-DataStack.Pop());
                     break;
                 case "ABS":
-                    stack.Push(Math.Abs(stack.Pop()));
+                    DataStack.Push(Math.Abs(DataStack.Pop()));
                     break;
                 case "AND":
                     {
-                        int number1 = stack.Pop();
-                        int number2 = stack.Pop();
+                        int number1 = DataStack.Pop();
+                        int number2 = DataStack.Pop();
                         int result = number1 & number2;
-                        stack.Push(result);
+                        DataStack.Push(result);
                         break;
                     }
                 case "OR":
                     {
-                        int number1 = stack.Pop();
-                        int number2 = stack.Pop();
+                        int number1 = DataStack.Pop();
+                        int number2 = DataStack.Pop();
                         int result = number1 | number2;
-                        stack.Push(result);
+                        DataStack.Push(result);
                         break;
                     }
                 case "XOR":
                     {
-                        int number1 = stack.Pop();
-                        int number2 = stack.Pop();
+                        int number1 = DataStack.Pop();
+                        int number2 = DataStack.Pop();
                         int result = number1 ^ number2;
-                        stack.Push(result);
+                        DataStack.Push(result);
                         break;
                     }
                 case "SHL":
-                    stack.Push(stack.Pop() * 2);
+                    DataStack.Push(DataStack.Pop() * 2);
                     break;
                 case "SHR":
-                    stack.Push(stack.Pop() / 2);
+                    DataStack.Push(DataStack.Pop() / 2);
                     break;
                 case "BR":
-
-                    break;
+                    PC = DataStack.Pop();
+                    return;
                 case "BRN":
-
-                    break;
+                    {
+                        int address = DataStack.Pop();
+                        int flag = DataStack.Pop();
+                        if (flag < 0)
+                        {
+                            PC = address;
+                        }
+                        return;
+                    }
                 case "BRZ":
-
-                    break;
+                    {
+                        int address = DataStack.Pop();
+                        int flag = DataStack.Pop();
+                        if (flag == 0)
+                        {
+                            PC = address;
+                        }
+                        return;
+                    }
                 case "BRP":
-
-                    break;
+                    {
+                        int address = DataStack.Pop();
+                        int flag = DataStack.Pop();
+                        if (flag > 0)
+                        {
+                            PC = address;
+                        }
+                        return;
+                    }
                 case "SAVE":
-
-                    break;
+                    {
+                        int address = DataStack.Pop();
+                        int number = DataStack.Pop();
+                        RAM[address] = number;
+                        break;
+                    }
                 case "LOAD":
-
-                    break;
+                    {
+                        int address = DataStack.Pop();
+                        DataStack.Push(RAM[address]);
+                        break;
+                    }
                 case "NOP":
-
                     break;
                 case "IN":
-
+                    Console.Write("enter value>>");
+                    DataStack.Push(int.Parse(Console.ReadLine()));
                     break;
                 case "OUTN":
-
+                    Console.WriteLine(DataStack.Pop());
                     break;
                 case "OUTC":
-
+                    Console.WriteLine((char)DataStack.Pop());
                     break;
                 case "HALT":
-
-                    break;
+                    PC = commandsSequence.Count;
+                    return;
                 case "LPC":
-
+                    DataStack.Push(PC);
                     break;
                 case "DEPTH":
-
+                    DataStack.Push(DataStack.Count());
                     break;
                 case "CALL":
-
-                    break;
+                    ReturnStack.Push(PC + 1);
+                    PC = DataStack.Pop();
+                    return;
                 case "RET":
-
-                    break;
+                    PC = ReturnStack.Pop();
+                    return;
                 case "DTR":
-
+                    ReturnStack.Push(DataStack.Pop());
                     break;
                 case "RTD":
-
+                    DataStack.Push(ReturnStack.Pop());
                     break;
             }
+            PC++;
         }
 
         internal void Reset()
         {
             commandsSequence.Clear();
             AddressValue.Clear();
+            DataStack.Clear();
+            ReturnStack.Clear();
+            PC = 0;
+            MemoryCellIndex = 0;
         }
     }
 }

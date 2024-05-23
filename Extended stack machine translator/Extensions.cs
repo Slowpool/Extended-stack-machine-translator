@@ -11,11 +11,10 @@ namespace Extended_stack_machine_translator
     {
         public static void Print(this List<string> list)
         {
-            foreach(var val in list)
+            for(int i = 0; i < list.Count; i++)
             {
-                Debug.Write(val + " | ");
+                Debug.WriteLine("{0}| {1}", i, list[i]);
             }
-            Debug.WriteLine("");
         }
     }
 }
