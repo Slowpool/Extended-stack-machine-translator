@@ -11,13 +11,12 @@ namespace Extended_stack_machine_translator
     {
         static void Main()
         {
-            var interpreter = new Interpreter();
+            var translator = new Translator();
             do
             {
                 Console.Write("enter full file path>>");
                 //interpreter.ExecuteFile(Console.ReadLine());
-                interpreter.ExecuteFile(@"C:\Users\azgel\Desktop\biggest common divisor.txt");
-                interpreter.Reset();
+                translator.ExecuteFile(@"C:\Users\azgel\Desktop\biggest common divisor.txt");
                 Console.WriteLine("interpreting finished");
                 Console.WriteLine("e - exit | c - choose file | r - repeat");
                 Console.Write("insert command>>");

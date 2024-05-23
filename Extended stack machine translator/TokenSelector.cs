@@ -11,7 +11,7 @@ namespace Extended_stack_machine_translator
         internal static List<string> SelectTokens(string line, List<string> tokens)
         {
             string token;
-            foreach (string value in line.Split())
+            foreach (string value in line.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries))
             {
                 token = value.ToUpper();
                 if (IsCommentToken(token))
@@ -24,7 +24,7 @@ namespace Extended_stack_machine_translator
                 }
                 else if (IsLabelToken(token))
                 {
-                    throw new Exception("prematurelabel token");
+                    tokens.Add(token);
                 }
                 else if (IsAddressToken(token))
                 {
@@ -32,7 +32,7 @@ namespace Extended_stack_machine_translator
                 }
                 else
                 {
-                    //throw new Exception("unknown token");
+                    throw new Exception("unknown token");
                 }
 
             }
@@ -44,20 +44,26 @@ namespace Extended_stack_machine_translator
             return token.StartsWith("#") || token.StartsWith(";");
         }
 
-        private static bool IsLabelToken(string token)
+        internal static bool IsLabelToken(string token)
         {
-#warning not implemented
-            return false;
+            return token.StartsWith(":");
         }
 
         private static bool IsCommandToken(string token)
         {
-            return Interpreter.Commands.Contains(token);
+            return Translator.Commands.Contains(token);
         }
 
-        private static bool IsAddressToken(string token)
+        internal static bool IsAddressToken(string address)
         {
-            return Interpreter.AddresValue.ContainsKey(token);
+            foreach(char character in address)
+            {
+                if (!char.IsLetter(character) && character != '_')
+                {
+                    return false;
+                }
+            }
+            return !IsCommandToken(address);
         }
     }
 }
