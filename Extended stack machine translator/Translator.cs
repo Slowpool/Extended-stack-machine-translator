@@ -105,7 +105,7 @@ namespace Extended_stack_machine_translator
             commandsSequence.Print();
 
             // Third traversal. Executing
-            while ( PC < commandsSequence.Count)
+            while (PC < commandsSequence.Count)
             {
                 Execute(commandsSequence[PC]);
             }
@@ -116,10 +116,15 @@ namespace Extended_stack_machine_translator
         private void ReplaceAdress(int i)
         {
             string currentAddress = commandsSequence[i];
+            // By that moment AddressValue looks like
+            // main_loop : 2
+            // fact : 7
+            // exit: 15
             if (AddressValue.ContainsKey(currentAddress))
             {
                 commandsSequence[i] = AddressValue[currentAddress].ToString();
             }
+            // If address isn't label, than it's a name of cell in memory
             else
             {
                 AddressValue[currentAddress] = MemoryCellIndex++;
@@ -149,22 +154,11 @@ namespace Extended_stack_machine_translator
             {
                 ExecuteCommand(token);
             }
-            else if (IsNumber(token))
+            else if (TokenSelector.IsNumberToken(token))
             {
                 DataStack.Push(int.Parse(token));
+                PC++;
             }
-        }
-
-        private bool IsNumber(string token)
-        {
-            foreach(char character in token)
-            {
-                if (!char.IsNumber(character))
-                {
-                    return false;
-                }
-            }
-            return true;
         }
 
         private void ExecuteCommand(string comamnd)
@@ -267,8 +261,9 @@ namespace Extended_stack_machine_translator
                         if (flag < 0)
                         {
                             PC = address;
+                            return;
                         }
-                        return;
+                        break;
                     }
                 case "BRZ":
                     {
@@ -277,8 +272,9 @@ namespace Extended_stack_machine_translator
                         if (flag == 0)
                         {
                             PC = address;
+                            return;
                         }
-                        return;
+                        break;
                     }
                 case "BRP":
                     {
@@ -287,8 +283,9 @@ namespace Extended_stack_machine_translator
                         if (flag > 0)
                         {
                             PC = address;
+                            return;
                         }
-                        return;
+                        break;
                     }
                 case "SAVE":
                     {
@@ -300,7 +297,15 @@ namespace Extended_stack_machine_translator
                 case "LOAD":
                     {
                         int address = DataStack.Pop();
-                        DataStack.Push(RAM[address]);
+                        if (RAM.ContainsKey(address))
+                        {
+                            DataStack.Push(RAM[address]);
+                        }
+                        else
+                        {
+                            RAM[address] = 0;
+                            DataStack.Push(RAM[address]);
+                        }
                         break;
                     }
                 case "NOP":

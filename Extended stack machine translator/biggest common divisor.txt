@@ -1,0 +1,45 @@
+IN ; A
+IN ; B
+
+:main_loop
+NOP
+:if_equal
+get_difference
+CALL
+done                    ; | A B A-B done
+BRZ         
+:if_a_greater_than_b
+get_difference
+CALL
+assign_a_difference
+BRP                     ; if a>b then a=a-b
+assign_b_reversive_difference
+CALL
+main_loop
+BR
+
+:get_difference
+OVER
+OVER
+SUB
+RET
+
+:assign_a_difference
+DUP
+temp
+SAVE                    ; | A B, temp=B
+SUB
+temp
+LOAD
+RET
+
+:assign_b_reversive_difference
+OVER                    ; | A B
+                        ; | A B A
+SUB
+RET
+
+:done                   ; | A B
+DROP                    ; | A
+OUTN                    ; |
+

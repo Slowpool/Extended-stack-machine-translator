@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -14,14 +15,27 @@ namespace Extended_stack_machine_translator
             var translator = new Translator();
             do
             {
-                Console.Write("enter full file path>>");
-                translator.ExecuteFile(Console.ReadLine());
+                Console.Write("enter file name>>");
+                string fileName = Path.Combine(@"C:\Users\azgel\source\repos\Extended stack machine translator\Extended stack machine translator", Console.ReadLine());
+                try
+                {
+                    translator.ExecuteFile(fileName);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Error: " + e.Message);
+                }
                 //translator.ExecuteFile(@"C:\Users\azgel\Desktop\biggest common divisor.txt");
-                Console.WriteLine("interpreting finished");
-                Console.WriteLine("e - exit | c - choose file | r - repeat");
+                Console.WriteLine("FINISHED");
+                Console.WriteLine("exit - to exit | any key to select file again");
                 Console.Write("insert command>>");
+                string userAnswer = Console.ReadLine();
+                if (userAnswer == "exit")
+                {
+                    break;
+                }
             }
-            while (Console.ReadLine() != "exit");
+            while (true);
             Console.WriteLine("translator program finished");
         }
     }

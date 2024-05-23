@@ -11,22 +11,17 @@ namespace Extended_stack_machine_translator
         internal static List<string> SelectTokens(string line, List<string> tokens)
         {
             string token;
-            foreach (string value in line.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries))
+            foreach (string value in line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
             {
                 token = value.ToUpper();
                 if (IsCommentToken(token))
                 {
                     break;
                 }
-                else if (IsCommandToken(token))
-                {
-                    tokens.Add(token);
-                }
-                else if (IsLabelToken(token))
-                {
-                    tokens.Add(token);
-                }
-                else if (IsAddressToken(token))
+                else if (IsCommandToken(token)
+                      || IsLabelToken(token)
+                      || IsAddressToken(token)
+                      || IsNumberToken(token))
                 {
                     tokens.Add(token);
                 }
@@ -56,7 +51,7 @@ namespace Extended_stack_machine_translator
 
         internal static bool IsAddressToken(string address)
         {
-            foreach(char character in address)
+            foreach (char character in address)
             {
                 if (!char.IsLetter(character) && character != '_')
                 {
@@ -64,6 +59,18 @@ namespace Extended_stack_machine_translator
                 }
             }
             return !IsCommandToken(address);
+        }
+
+        internal static bool IsNumberToken(string token)
+        {
+            foreach (char character in token)
+            {
+                if (!char.IsNumber(character))
+                {
+                    return false;
+                }
+            }
+            return true;
         }
     }
 }
