@@ -63,14 +63,15 @@ namespace Extended_stack_machine_translator
 
         internal static bool IsNumberToken(string token)
         {
-            foreach (char character in token)
+            try
             {
-                if (!char.IsNumber(character))
-                {
-                    return false;
-                }
+                int.Parse(token);
+                return true;
             }
-            return true;
+            catch
+            {
+                return false;
+            }
         }
     }
 }

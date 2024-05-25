@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Extended_stack_machine_translator.Properties;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,13 +11,29 @@ namespace Extended_stack_machine_translator
 {
     internal class Program
     {
+        private static List<FileInfo> Files = new List<FileInfo>();
+
         static void Main()
         {
+            FillNumberFileMapping();
             var translator = new Translator();
             do
             {
-                Console.Write("enter file name>>");
-                string fileName = Path.Combine(@"C:\Users\azgel\source\repos\Extended stack machine translator\Extended stack machine translator", Console.ReadLine());
+                Console.Clear();
+                PrintListOfPrograms();
+                Console.Write("choose program>>");
+                string fileName;
+
+                try
+                {
+                    fileName = Files[int.Parse(Console.ReadLine())].FullName;
+                }
+                catch
+                {
+                    Console.WriteLine("incorrect number, try again");
+                    continue;
+                }
+
                 try
                 {
                     translator.ExecuteFile(fileName);
@@ -25,18 +42,32 @@ namespace Extended_stack_machine_translator
                 {
                     Console.WriteLine("Error: " + e.Message);
                 }
-                //translator.ExecuteFile(@"C:\Users\azgel\Desktop\biggest common divisor.txt");
-                Console.WriteLine("FINISHED");
-                Console.WriteLine("exit - to exit | any key to select file again");
-                Console.Write("insert command>>");
-                string userAnswer = Console.ReadLine();
-                if (userAnswer == "exit")
-                {
-                    break;
-                }
+
+                Console.WriteLine("Press any key to choose file...");
+                Console.ReadKey();
             }
             while (true);
-            Console.WriteLine("translator program finished");
+            //Console.WriteLine("translator program finished");
+        }
+
+        private static void FillNumberFileMapping()
+        {
+            var files = new DirectoryInfo(Environment.CurrentDirectory)
+                            .GetFiles()
+                            .Where(file => file.Extension == ".txt");
+            int i = 0;
+            foreach (var file in files)
+            {
+                Files.Add(file);
+            }
+        }
+
+        private static void PrintListOfPrograms()
+        {
+            for (int i = 0; i < Files.Count; i++)
+            {
+                Console.WriteLine("{0} {1}", i, Files[i]);
+            }
         }
     }
 }
