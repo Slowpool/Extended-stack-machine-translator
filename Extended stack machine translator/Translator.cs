@@ -46,7 +46,8 @@ namespace Extended_stack_machine_translator
             "CALL",
             "RET",
             "DTR",
-            "RTD"
+            "RTD",
+            "ROT",
         };
         private readonly Stack<int> DataStack;
         private readonly Stack<int> ReturnStack;
@@ -341,6 +342,14 @@ namespace Extended_stack_machine_translator
                     break;
                 case "RTD":
                     DataStack.Push(ReturnStack.Pop());
+                    break;
+                case "ROT":
+                    int third = DataStack.Pop();
+                    int second = DataStack.Pop();
+                    int first = DataStack.Pop();
+                    DataStack.Push(third);
+                    DataStack.Push(first);
+                    DataStack.Push(second);
                     break;
             }
             PC++;
