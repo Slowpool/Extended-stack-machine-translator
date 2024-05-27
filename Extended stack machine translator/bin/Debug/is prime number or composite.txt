@@ -1,0 +1,69 @@
+IN          ; | 13
+
+DUP         ; | 13 13
+2           ; | 13 13 2
+SUB         ; | 13 11
+# if number below 2
+# then it's not a prime
+false       ; | 13 11 false   
+BRN
+            ; | 13
+number      ; | 13 number
+SAVE        ; |
+
+# 1           ; | 13 1
+# SUB         ; | 12
+# upper_limit ; | 12 upper_limit
+# SAVE        ; |
+
+# start
+2           ; | 2
+current     ; | 2 current
+SAVE        ; |
+
+:main_loop
+current     ; | current
+LOAD        ; | 2
+number      ; | 2 number
+LOAD        ; | 2 13
+SUB         ; | -11
+true        ; | - 11 true
+BRZ         ; |
+
+:check_division
+number
+LOAD
+current
+LOAD        ; | number current
+DIV         ; | number%current number/current
+DROP        ; | number%current
+false       ; | number%current false
+BRZ         ; |
+
+:plus_one
+current
+LOAD        ; | current
+1           ; | current 1
+ADD         ; | current+1
+current     ; | current+1 current
+SAVE        ; |
+main_loop
+BR
+
+
+
+:false
+110 ; n
+OUTC
+111 ; o
+OUTC
+HALT
+
+:true
+121 ; y
+OUTC
+101 ; e
+OUTC
+115 ; s
+OUTC
+HALT

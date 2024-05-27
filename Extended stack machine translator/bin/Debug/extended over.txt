@@ -1,0 +1,99 @@
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+
+IN                  ; | 1 2 3 4 5 6 7 8 9 10 *index*
+
+:check_input
+DUP                 ; | 1 2 3 4 5 6 7 8 9 10 *index* *index*
+DEPTH               ; | 1 2 3 4 5 6 7 8 9 10 *index* *index* *depth*
+2                   ; | 1 2 3 4 5 6 7 8 9 10 *index* *index* *depth* 2
+SUB                 ; | 1 2 3 4 5 6 7 8 9 10 *index* *index* *depth-2*
+SUB                 ; | 1 2 3 4 5 6 7 8 9 10 *index* *index-depth*
+continue
+BRN
+
+:wrong_index
+120 101 100 110 105 32 103 110 111 114 119
+OUTC OUTC OUTC OUTC OUTC OUTC OUTC OUTC OUTC OUTC OUTC
+HALT
+
+:continue
+target_index        ; | 1 2 3 4 5 6 7 8 9 10 *index* target_index
+SAVE                ; | 1 2 3 4 5 6 7 8 9 10
+
+:main_loop
+target_index        ; | 1 2 3 4 5 6 7 8 9 10 target_index
+LOAD                ; | 1 2 3 4 5 6 7 8 9 10 *index*
+save_and_raise      ; | 1 2 3 4 5 6 7 8 9 10 *index* save_and_raise
+BRZ                 ; | 1 2 3 4 5 6 7 8 9 10
+
+DTR                 ; | 1 2 3 4 5 6 7 8 9
+increment_ret_stack
+CALL
+
+decrement_target_index
+CALL
+
+main_loop           ; | 1 2 3 4 5 6 7 8 9 main_loop
+BR                  ; | 1 2 3 4 5 6 7 8 9
+
+:save_and_raise     ; | 1 2 3 4 5 *target_number*
+DUP                 ; | 1 2 3 4 5 *target_number* *target_number*
+target_number       ; | 1 2 3 4 5 *target_number* *target_number* target_number
+SAVE                ; | 1 2 3 4 5 *target_number*
+
+:check_rsd
+return_stack_dpt    ; | 1 2 3 4 5 *target_number* return_stack_dpt
+LOAD                ; | 1 2 3 4 5 *target_number* *rsd*
+load_target_number  ; | 1 2 3 4 5 *target_number* *rsd* load_target_number
+BRZ                 ; | 1 2 3 4 5 *target_number*
+
+
+:return_from_rstack
+RTD
+decrement_ret_stack
+CALL
+check_rsd
+BR
+
+:load_target_number
+target_number
+LOAD
+OUTN OUTN OUTN OUTN OUTN OUTN OUTN OUTN OUTN OUTN OUTN 
+HALT
+
+
+:increment_ret_stack
+return_stack_dpt    ; | ... return_stack_dpt
+LOAD                ; | ... *rsd*
+1                   ; | ... *rsd* 1
+ADD                 ; | ... *rsd+1*
+return_stack_dpt    ; | ... *rsd+1* return_stack_dpt
+SAVE                ; | ...
+RET
+
+:decrement_ret_stack
+return_stack_dpt    ; | ... return_stack_dpt
+LOAD                ; | ... *rsd*
+1                   ; | ... *rsd* 1
+SUB                 ; | ... *rsd-1*
+return_stack_dpt    ; | ... *rsd-1* return_stack_dpt
+SAVE                ; | ...
+RET
+
+:decrement_target_index
+target_index        ; | ... target_index
+LOAD                ; | ... *index*
+1                   ; | ... *index* 1
+SUB                 ; | ... *index-1*
+target_index        ; | ... *index-1* target_index
+SAVE                ; | ...
+RET
